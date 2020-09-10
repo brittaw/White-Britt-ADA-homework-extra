@@ -1,0 +1,141 @@
+---
+title: "White-Britt-ADA-homework-extra"
+author: "BA White"
+date: "8/30/2020"
+output: html_document
+---
+
+Add necessary packages
+
+```{r}
+library(tidyverse)
+library(lme4)
+library(AICcmodavg)
+```
+Challenge 1
+• Read the datafiles “gini-index-data.csv” and “world-bank.csv” into two data frames, **gini* and
+*worldbank**.
+• For the gini data frame, pivot it from wide to long format so that you have a single row with a GINI
+index values for each combination of Country Name and Year. HINT: Use {tidyr}’s pivot_longer()
+function!
+• Print the first 10 lines of each dataset.
+```{r}
+#Read in datafiles 
+gini <- "gini-index-data.csv"
+gini <- read_csv(gini)
+worldbank <- "world-bank-data.csv"
+worldbank <- read_csv(worldbank)
+
+head(gini)
+#Now we will pivot the gini data
+ginilonger <- gini %>%
+  pivot_longer(cols = 5:64)
+#Now Print
+print(ginilonger)
+print(worldbank)
+```
+CHALLENGE 2
+• Join the GINI index and World Bank data sets together using the “Country Code” in gini and “iso3c”
+code in worldbank into a new data frame, d. HINT: Use {dplyr}’s left_join() function to add
+data from worldbank to every row in gini.
+• Convert the variable “Year” to be an integer.
+• Convert the variables “Country Name” and “income” to be factors. For “income”, order the levels of
+the factor from “Low income” to “High income”. HINT: See the factor() function.
+• Drop all rows from d that are missing GINI index data (many years for many countries). HINT: Use
+{dplyr}’s filter() function.
+• How many rows are in the dataset at this point? HINT: It should be over 1000 and under 2000!
+```{r}
+#Join datasets
+newdf <- left_join(ginilonger, worldbank, by = c("Country Code" = "iso3c"))
+glimpse(newdf)
+
+#Convert "Year" ie "name" to integer
+newdf$name = as.integer(as.character(newdf$name))
+newdf$'Country Name' = as.factor(as.character(newdf$'Country Name'))
+glimpse(newdf)
+
+
+###????
+#order levels of factor from low to high income
+unique(newdf$income)
+newdf$income  <- factor(newdf$income, levels = c("Low income", "Lower middle income", "Upper middle income", "High income"))
+glimpse(newdf)
+
+#drop missing GINI Index missing values
+d <- newdf %>%
+ filter(!is.na(value))
+
+#How many rows? 
+glimpse(d)
+```
+CHALLENGE 3
+• Using {ggplot}, with the data frame, d, as your data argument, plot on the same graph the GINI index
+across years for the “Group of Seven” (G7) countries, which are the largest IMF-advanced economies in
+the world (i.e., the United States, United Kingdom, Canada, France, Germany, Italy, and Japan) plus
+China, Russia, and Iran. HINT: When you assign the data= argument in {ggplot}, you can have the
+assignment be the result of a piped set of {dplyr} operations.
+• NOTE that in d at this point, the names “Russia” and “China” are not used as country names (check
+out the country codes RUS and IRN). Use {dplyr} and str_replace() to change the original country
+names to “Russia” and “Iran” before making your plot.
+```{r}
+##use ggplot to plot the GINI Index/years for largest IMF advanced economies in the world, ie. the "Group of Seven Countries" 
+country <- c('United States', 'United Kingdom', 'Canada', 'France', 'Germany', 'Italy', 'Japan', 'China', 'Russian Federation', 'Iran, Islamic Rep.')
+
+country <- str_replace('Russian Federation' = 'Russia', 'Iran, Islamic Rep.' = 'Iran')
+
+d %>% group_by(country) %>%
+ggplot() +
+  geom_point(aes(x = name, y = value, color = factor(country)))
+```
+CHALLENGE 4
+• Again using {ggplot}, with d as your dataset, add Brazil, Bolivia, Colombia, India, Vietnam, Rwanda,
+Uganda, and Ethiopia to the list of countries you examine and make a plot with four panels, where you
+facet by “income”.
+NOTE: For both Challenge 4 and Challenge 5, try to generate the plots with a SINGLE line of code,
+and orient the legend at the bottom and remove the title of the legend. HINT: You will probably
+want to use theme(legend.position="bottom", legend.title = element_blank()).
+```{r}
+#using ggplot, add Brazil, Bolivia, Colombia, India, Vietnam, Rwanda, Uganda, and Ethiopia
+d %>% group_by(country) %>%
+ggplot() +
+  geom_point(aes(x = name, y = value, color = factor(country)))
+facet_wrap()
+
+```
+
+CHALLENGE 5
+• Using {dplyr}’s group_by() and summarize() functions, create a new data frame, gini_summary,
+that includes the minimum, maximum, average, oldest GINI index, latest GINI index, year of the oldest
+GINI index, and year of the latest GINI index for all countries in d, as well as a variable, “gini_change”,
+that is the difference in the GINI index between the most recent and the oldest GINI indices for a
+country divided by the number of years between the most recent and oldest indices (i.e., that summarizes
+the change in GINI index across time for each country, given the data available). Arrange that table in
+descending order of the “gini_change” within each “income” group, with the “income” groups ordered
+from highest to lowest.
+HINT: This can all be done in single line of code by piping d into group_by(), summarize(),
+and arrange() functions. Within summarize(), you will be creating multiple new summary
+variables. Here’s one way that you can create one of these variables, the GINI value for the oldest
+GINI index in the dataset for a particular group
+oldest_gini = `GINI Index`[which(`Year` == min(`Year`))]
+3
+```{r}
+```
+CHALLENGE 6
+• Using {ggplot} and the gini_summary dataset, make a boxplot of “gini_change” by “income” group.
+```{r}
+```
+
+CHALLENGE 7:
+• Return to data frame d and filter() it to only include the 18 countries mentioned in Challenges 3
+and 4.
+• Using linear mixed effect models, explore how the GINI index is related to “population”, “income”, and
+“gdp_capita” as predictors when “Country Name” is included as a random factor in the model. You
+should construct a full model that includes all three predictors plus the random factor of “Country
+Name” as well as a complete set of nested models (no need to include interaction terms). The null
+model should include only the random factor. Once you have constructed a full set of models, construct
+an table ranking the models based on AICc. Which is the best supported model? What other models
+are included in the set contributing to a cumulative AIC weight of >0.90? Which predictors appear in
+all of the top models?
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+```
