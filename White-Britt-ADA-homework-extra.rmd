@@ -57,9 +57,10 @@ glimpse(newdf)
 
 ###????
 #order levels of factor from low to high income
-unique(newdf$income)
-newdf$income  <- factor(newdf$income, levels = c("Low income", "Lower middle income", "Upper middle income", "High income"))
-glimpse(newdf)
+#unique(newdf$income)
+#newdf$income  <- factor(newdf$income, levels = c("Low income", "Lower middle income", "Upper middle income", "High income"))
+#glimpse(newdf)
+###
 
 #drop missing GINI Index missing values
 d <- newdf %>%
@@ -78,14 +79,17 @@ assignment be the result of a piped set of {dplyr} operations.
 out the country codes RUS and IRN). Use {dplyr} and str_replace() to change the original country
 names to “Russia” and “Iran” before making your plot.
 ```{r}
+##change the names of Russia and Iran(?) 
+d$country <- str_replace(d$country,"Iran, Islamic Rep.", "Iran")
+d$country <- str_replace(d$country,"Russian Federation", "Russia")
+
 ##use ggplot to plot the GINI Index/years for largest IMF advanced economies in the world, ie. the "Group of Seven Countries" 
-country <- c('United States', 'United Kingdom', 'Canada', 'France', 'Germany', 'Italy', 'Japan', 'China', 'Russian Federation', 'Iran, Islamic Rep.')
+d %>% 
+filter(country %in% c("United States", "United Kingdom", "Canada", "France", "Germany", "Italy", "Japan", "China", "Russia", "Iran")) %>%
+  ggplot(aes(name, value, color = country)) +
+  geom_point() +
+  geom_smooth(se = FALSE, method = lm)
 
-country <- str_replace('Russian Federation' = 'Russia', 'Iran, Islamic Rep.' = 'Iran')
-
-d %>% group_by(country) %>%
-ggplot() +
-  geom_point(aes(x = name, y = value, color = factor(country)))
 ```
 CHALLENGE 4
 • Again using {ggplot}, with d as your dataset, add Brazil, Bolivia, Colombia, India, Vietnam, Rwanda,
@@ -96,10 +100,12 @@ and orient the legend at the bottom and remove the title of the legend. HINT: Yo
 want to use theme(legend.position="bottom", legend.title = element_blank()).
 ```{r}
 #using ggplot, add Brazil, Bolivia, Colombia, India, Vietnam, Rwanda, Uganda, and Ethiopia
-d %>% group_by(country) %>%
-ggplot() +
-  geom_point(aes(x = name, y = value, color = factor(country)))
-facet_wrap()
+d %>% 
+filter(country %in% c("Brazil", "Bolivia", "Colombia", "India", "Vietnam", "Rwanda", "Uganda", "Ethiopia", "United States", "United Kingdom", "Canada", "France", "Germany", "Italy", "Japan", "China", "Russia", "Iran")) %>%
+  ggplot(aes(name, value, color = country)) +
+  geom_point() +
+  geom_smooth(se = FALSE, method = lm)+
+  theme(legend.position = "bottom", legend.title = element_blank())
 
 ```
 
